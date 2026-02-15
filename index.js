@@ -167,8 +167,8 @@ Many of these actions are illegal. "Jokes" will be treated as seriously as real 
 Providing false or misleading information in appeals will extend your punishment.
 
 7. Refunds Policy
-Due to the intangible nature of our goods, items listed on our store are exempt from the Consumer Rights Act 2015. By purchasing an item on our store, you explicitly agree that our goods fall under the "computer software" and "personalised or custom made items" categories which exempt you from a Right of Return.
-    `);
+Due to the intangible nature of our goods, items listed on our store are exempt from the Consumer Rights Act 2015. By purchasing an item on our store, you explicitly agree that our goods fall under "computer software" and "personalised or custom made items" categories which exempt you from a Right of Return.
+`)
 
   return interaction.reply({ embeds: [embed] });
 }

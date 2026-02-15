@@ -1,6 +1,6 @@
-const { 
-  Client, 
-  GatewayIntentBits, 
+const {
+  Client,
+  GatewayIntentBits,
   Partials,
   SlashCommandBuilder,
   REST,
@@ -22,10 +22,9 @@ const client = new Client({
   partials: [Partials.Channel]
 });
 
-// ================= COMMANDS =================
+// ================= SLASH COMMANDS =================
 
 const commands = [
-
   new SlashCommandBuilder()
     .setName('rules')
     .setDescription('Shows the server rules'),
@@ -38,57 +37,39 @@ const commands = [
     .setName('ban')
     .setDescription('Ban a user')
     .addUserOption(option =>
-      option.setName('user')
-        .setDescription('User to ban')
-        .setRequired(true))
+      option.setName('user').setDescription('User to ban').setRequired(true))
     .addStringOption(option =>
-      option.setName('reason')
-        .setDescription('Reason for ban')
-        .setRequired(false)),
+      option.setName('reason').setDescription('Reason').setRequired(false)),
 
   new SlashCommandBuilder()
     .setName('kick')
     .setDescription('Kick a user')
     .addUserOption(option =>
-      option.setName('user')
-        .setDescription('User to kick')
-        .setRequired(true))
+      option.setName('user').setDescription('User to kick').setRequired(true))
     .addStringOption(option =>
-      option.setName('reason')
-        .setDescription('Reason for kick')
-        .setRequired(false)),
+      option.setName('reason').setDescription('Reason').setRequired(false)),
 
   new SlashCommandBuilder()
     .setName('mute')
     .setDescription('Timeout a user')
     .addUserOption(option =>
-      option.setName('user')
-        .setDescription('User to mute')
-        .setRequired(true))
+      option.setName('user').setDescription('User to mute').setRequired(true))
     .addIntegerOption(option =>
-      option.setName('minutes')
-        .setDescription('Mute duration in minutes')
-        .setRequired(true)),
+      option.setName('minutes').setDescription('Duration in minutes').setRequired(true)),
 
   new SlashCommandBuilder()
     .setName('warn')
     .setDescription('Warn a user')
     .addUserOption(option =>
-      option.setName('user')
-        .setDescription('User to warn')
-        .setRequired(true))
+      option.setName('user').setDescription('User to warn').setRequired(true))
     .addStringOption(option =>
-      option.setName('reason')
-        .setDescription('Reason for warning')
-        .setRequired(true)),
+      option.setName('reason').setDescription('Reason').setRequired(true)),
 
   new SlashCommandBuilder()
     .setName('blacklist')
     .setDescription('Blacklist a user')
     .addUserOption(option =>
-      option.setName('user')
-        .setDescription('User to blacklist')
-        .setRequired(true))
+      option.setName('user').setDescription('User').setRequired(true))
     .addStringOption(option =>
       option.setName('type')
         .setDescription('Blacklist type')
@@ -97,9 +78,7 @@ const commands = [
           { name: 'Media', value: 'media' },
           { name: 'Staff', value: 'staff' }
         ))
-
-].map(command => command.toJSON());
-
+].map(cmd => cmd.toJSON());
 
 // ================= REGISTER COMMANDS =================
 
@@ -110,22 +89,22 @@ const rest = new REST({ version: '10' }).setToken(TOKEN);
     console.log('Registering slash commands...');
     await rest.put(
       Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
-      { body: commands },
+      { body: commands }
     );
     console.log('Slash commands registered.');
-  } catch (error) {
-    console.error(error);
+  } catch (err) {
+    console.error(err);
   }
 })();
 
-// ================= INTERACTIONS =================
+// ================= INTERACTION HANDLER =================
 
 client.on('interactionCreate', async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
   const { commandName } = interaction;
 
-  // RULES
+  // ================= RULES =================
   if (commandName === 'rules') {
     const embed = new EmbedBuilder()
       .setTitle('📜 Server Rules')
@@ -138,46 +117,40 @@ Attempting to bypass the chat filter will lead to a harsher punishment.
 Extreme toxicity, including death threats or other malicious comments, is not tolerated. If you're unsure whether something crosses the line, don't say it.
 
 2. Unfair Gameplay
-Any form of hacks, macros, X-ray packs, autoclickers, minimaps, inventory checkers, bug abuse, exploiting, duping, Litematica Easyplace, health indicators, or other disallowed modifications are prohibited. Final judgement on unfair advantages rests with staff.
-Evading punishments through alternate accounts, usernames, or similar methods is forbidden.
-EasyMC accounts are STRICTLY prohibited. Associating your account with one can result in a permanent ban.
+Any form of hacks, macros, X-ray packs, autoclickers, minimaps, inventory checkers, bug abuse, exploiting, duping, Litematica Easyplace, health indicators, or other disallowed modifications are prohibited.
+Evading punishments through alternate accounts is forbidden.
+EasyMC accounts are STRICTLY prohibited.
 
 3. Inappropriate Content & Discrimination
-Discussions around sexual, hateful, or highly political topics are not welcome here.
-Building inappropriate structures, or using offensive team names, usernames, skins, capes, items, pets, or signs is not allowed.
-Discrimination of any kind — whether based on age, gender, race, religion, disability, sex, or sexual orientation — will not be tolerated.
-Sexism, racism, homophobia, and similar behaviour will result in serious punishment.
+No sexual, hateful, or highly political discussions.
+No discrimination of any kind.
+Sexism, racism, homophobia, etc. = serious punishment.
 
 4. Advertising
-Self-promotion and advertising other Minecraft/Discord servers is forbidden.
-Item trading requests are allowed but cannot be publicly broadcast.
-YouTube or stream links must be EuropeMC-related, shared no more than once every 5 minutes via /live, or posted in the media channel.
+No self-promotion or advertising other servers.
+Streams must be EuropeMC-related.
 
 5. Scamming & Trading
-Scamming involving items from the EuropeMC store or materials outside the server is not allowed.
-In-game item scamming is permitted — so be careful who you trust.
-Real money trading (IRL deals) is strictly forbidden and will lead to a permanent ban.
-Scamming ranks is also a permanent ban offence with no appeal.
+Real money trading = permanent ban.
+Scamming ranks = permanent ban.
 
 6. Threats
-Doxing, DDoSing, harassment, blackmail, swatting, IP grabbing, malicious links, or any related threats will result in an instant network blacklist.
-Sharing someone's personal information is not allowed, regardless of whether it's true.
-Many of these actions are illegal. "Jokes" will be treated as seriously as real attempts.
-Providing false or misleading information in appeals will extend your punishment.
+Doxing, DDoSing, blackmail, swatting, IP grabbing = instant blacklist.
 
 7. Refunds Policy
-Due to the intangible nature of our goods, items listed on our store are exempt from the Consumer Rights Act 2015. By purchasing an item on our store, you explicitly agree that our goods fall under the "computer software" and "personalised or custom made items" categories which exempt you from a Right of Return.
+Items are exempt from the Consumer Rights Act 2015.
+Purchasing means you agree goods fall under "computer software" and "personalised or custom made items".
       `);
 
     return interaction.reply({ embeds: [embed] });
   }
 
-  // SERVER
+  // ================= SERVER =================
   if (commandName === 'server') {
     return interaction.reply('🌍 Server IP: play.example.net');
   }
 
-  // BAN
+  // ================= BAN =================
   if (commandName === 'ban') {
     if (!interaction.member.permissions.has(PermissionsBitField.Flags.BanMembers))
       return interaction.reply({ content: 'No permission.', ephemeral: true });
@@ -189,7 +162,7 @@ Due to the intangible nature of our goods, items listed on our store are exempt 
     return interaction.reply(`🔨 ${user.tag} has been banned.`);
   }
 
-  // KICK
+  // ================= KICK =================
   if (commandName === 'kick') {
     if (!interaction.member.permissions.has(PermissionsBitField.Flags.KickMembers))
       return interaction.reply({ content: 'No permission.', ephemeral: true });
@@ -202,7 +175,7 @@ Due to the intangible nature of our goods, items listed on our store are exempt 
     return interaction.reply(`👢 ${user.tag} has been kicked.`);
   }
 
-  // MUTE
+  // ================= MUTE =================
   if (commandName === 'mute') {
     const user = interaction.options.getUser('user');
     const minutes = interaction.options.getInteger('minutes');
@@ -211,33 +184,25 @@ Due to the intangible nature of our goods, items listed on our store are exempt 
     if (!member)
       return interaction.reply({ content: 'User not found.', ephemeral: true });
 
-    if (!member.moderatable)
-      return interaction.reply({ content: 'I cannot mute this user. Check role hierarchy.', ephemeral: true });
-
-    try {
-      await member.timeout(minutes * 60 * 1000);
-      return interaction.reply(`🔇 ${user.tag} muted for ${minutes} minutes.`);
-    } catch (err) {
-      console.error(err);
-      return interaction.reply({ content: 'Failed to mute user.', ephemeral: true });
-    }
+    await member.timeout(minutes * 60 * 1000);
+    return interaction.reply(`🔇 ${user.tag} muted for ${minutes} minutes.`);
   }
 
-  // WARN
+  // ================= WARN =================
   if (commandName === 'warn') {
     const user = interaction.options.getUser('user');
     const reason = interaction.options.getString('reason');
     return interaction.reply(`⚠️ ${user.tag} warned. Reason: ${reason}`);
   }
 
-  // BLACKLIST
+  // ================= BLACKLIST =================
   if (commandName === 'blacklist') {
     const user = interaction.options.getUser('user');
     const type = interaction.options.getString('type');
 
-    let roleName;
-    if (type === 'media') roleName = 'Media Blacklist';
-    if (type === 'staff') roleName = 'Staff Blacklist';
+    const roleName = type === 'media'
+      ? 'Media Blacklist'
+      : 'Staff Blacklist';
 
     const role = interaction.guild.roles.cache.find(r => r.name === roleName);
     if (!role)
@@ -248,10 +213,6 @@ Due to the intangible nature of our goods, items listed on our store are exempt 
 
     return interaction.reply(`🚫 ${user.tag} blacklisted (${type}).`);
   }
-
-});
-
-
 });
 
 client.login(TOKEN);

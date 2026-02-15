@@ -22,7 +22,7 @@ const client = new Client({
   partials: [Partials.Channel]
 });
 
-// ================= SLASH COMMANDS =================
+// TIMEOUT & MUTE 
 
 const commands = [
   new SlashCommandBuilder()
@@ -80,7 +80,7 @@ const commands = [
         ))
 ].map(cmd => cmd.toJSON());
 
-// ================= REGISTER COMMANDS =================
+// REGISTER COMMANDS 
 
 const rest = new REST({ version: '10' }).setToken(TOKEN);
 
@@ -97,14 +97,14 @@ const rest = new REST({ version: '10' }).setToken(TOKEN);
   }
 })();
 
-// ================= INTERACTION HANDLER =================
+// INTERACTION HANDLER 
 
 client.on('interactionCreate', async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
   const { commandName } = interaction;
 
-  // ================= RULES =================
+  // RULES 
   if (commandName === 'rules') {
     const embed = new EmbedBuilder()
       .setTitle('📜 Server Rules')
@@ -151,8 +151,8 @@ categories which exempt you from a Right of Return. You also agree to indemnify 
     return interaction.reply({ embeds: [embed] });
   }
 
- // ================= SERVER =================
-if (commandName === 'server') {
+ // SERVER COMMAND
+if (commandName === 'serverinfo') {
   const embed = new EmbedBuilder()
     .setTitle('🌍 EuropeMC Server Information')
     .setColor('Blue')
@@ -168,7 +168,7 @@ if (commandName === 'server') {
   return interaction.reply({ embeds: [embed] });
 }
 
-  // ================= BAN =================
+  // BAN COMMAND
   if (commandName === 'ban') {
     if (!interaction.member.permissions.has(PermissionsBitField.Flags.BanMembers))
       return interaction.reply({ content: 'No permission.', ephemeral: true });
@@ -180,7 +180,7 @@ if (commandName === 'server') {
     return interaction.reply(`🔨 ${user.tag} has been banned.`);
   }
 
-  // ================= KICK =================
+  //  KICK COMMAND
   if (commandName === 'kick') {
     if (!interaction.member.permissions.has(PermissionsBitField.Flags.KickMembers))
       return interaction.reply({ content: 'No permission.', ephemeral: true });
@@ -193,7 +193,7 @@ if (commandName === 'server') {
     return interaction.reply(`👢 ${user.tag} has been kicked.`);
   }
 
-  // ================= MUTE =================
+  // MUTE COMMAND
   if (commandName === 'mute') {
     const user = interaction.options.getUser('user');
     const minutes = interaction.options.getInteger('minutes');
@@ -206,14 +206,14 @@ if (commandName === 'server') {
     return interaction.reply(`🔇 ${user.tag} muted for ${minutes} minutes.`);
   }
 
-  // ================= WARN =================
+  //  WARN COMMAND
   if (commandName === 'warn') {
     const user = interaction.options.getUser('user');
     const reason = interaction.options.getString('reason');
     return interaction.reply(`⚠️ ${user.tag} warned. Reason: ${reason}`);
   }
 
-  // ================= BLACKLIST =================
+  // BLACKLIST COMMAND
   if (commandName === 'blacklist') {
     const user = interaction.options.getUser('user');
     const type = interaction.options.getString('type');

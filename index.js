@@ -152,7 +152,7 @@ categories which exempt you from a Right of Return. You also agree to indemnify 
   }
 
  // SERVER COMMAND
-if (commandName === 'serverinfo') {
+if (commandName === 'server') {
   const embed = new EmbedBuilder()
     .setTitle('🌍 EuropeMC Server Information')
     .setColor('Blue')

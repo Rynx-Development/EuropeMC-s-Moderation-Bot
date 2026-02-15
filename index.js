@@ -145,10 +145,22 @@ Purchasing means you agree goods fall under "computer software" and "personalise
     return interaction.reply({ embeds: [embed] });
   }
 
-  // ================= SERVER =================
-  if (commandName === 'server') {
-    return interaction.reply('🌍 Server IP: play.example.net');
-  }
+ // ================= SERVER =================
+if (commandName === 'server') {
+  const embed = new EmbedBuilder()
+    .setTitle('🌍 EuropeMC Server Information')
+    .setColor('Blue')
+    .addFields(
+      { name: 'Server IP', value: 'europemc.eu', inline: true },
+      { name: 'Port', value: '19132', inline: true },
+      { name: 'Version', value: '1.21+', inline: true },
+      { name: 'Store', value: 'https://store.europemc.eu/', inline: false }
+    )
+    .setFooter({ text: 'Join now and start playing!' })
+    .setTimestamp();
+
+  return interaction.reply({ embeds: [embed] });
+}
 
   // ================= BAN =================
   if (commandName === 'ban') {

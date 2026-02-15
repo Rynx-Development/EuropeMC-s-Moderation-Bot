@@ -118,7 +118,6 @@ const rest = new REST({ version: '10' }).setToken(TOKEN);
   }
 })();
 
-
 // ================= INTERACTIONS =================
 
 client.on('interactionCreate', async interaction => {
@@ -126,12 +125,12 @@ client.on('interactionCreate', async interaction => {
 
   const { commandName } = interaction;
 
-// RULES
-if (commandName === 'rules') {
-  const embed = new EmbedBuilder()
-    .setTitle('📜 Server Rules')
-    .setColor('Blue')
-    .setDescription(`
+  // RULES
+  if (commandName === 'rules') {
+    const embed = new EmbedBuilder()
+      .setTitle('📜 Server Rules')
+      .setColor('Blue')
+      .setDescription(`
 1. Chat Conduct
 Use respectful language at all times. Abusive messages, inappropriate jokes, harassment, or spreading false information are not allowed.
 Do not flood the chat with repeated or similar messages, long texts, non-English characters, or excessive use of ALL CAPS. Spam of any kind is not permitted.
@@ -167,12 +166,10 @@ Many of these actions are illegal. "Jokes" will be treated as seriously as real 
 Providing false or misleading information in appeals will extend your punishment.
 
 7. Refunds Policy
-Due to the intangible nature of our goods, items listed on our store are exempt from the Consumer Rights Act 2015. By purchasing an item on our store, you explicitly agree that our goods fall under "computer software" and "personalised or custom made items" categories which exempt you from a Right of Return.
-`)
+Due to the intangible nature of our goods, items listed on our store are exempt from the Consumer Rights Act 2015. By purchasing an item on our store, you explicitly agree that our goods fall under the "computer software" and "personalised or custom made items" categories which exempt you from a Right of Return.
+      `);
 
-  return interaction.reply({ embeds: [embed] });
-}
-
+    return interaction.reply({ embeds: [embed] });
   }
 
   // SERVER
@@ -251,6 +248,9 @@ Due to the intangible nature of our goods, items listed on our store are exempt 
 
     return interaction.reply(`🚫 ${user.tag} blacklisted (${type}).`);
   }
+
+});
+
 
 });
 

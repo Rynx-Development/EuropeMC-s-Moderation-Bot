@@ -112,34 +112,40 @@ client.on('interactionCreate', async interaction => {
       .setDescription(`
 1. Chat Conduct
 Use respectful language at all times. Abusive messages, inappropriate jokes, harassment, or spreading false information are not allowed.
-Do not flood the chat with repeated or similar messages, long texts, non-English characters, or excessive use of ALL CAPS. Spam of any kind is not permitted.
-Attempting to bypass the chat filter will lead to a harsher punishment.
-Extreme toxicity, including death threats or other malicious comments, is not tolerated. If you're unsure whether something crosses the line, don't say it.
+Do not flood the chat with repeated or similar messages, long texts, non-English characters, or excessive use of ALL CAPS. Spam of any kind is not permitted. Attempting to bypass the chat filter will lead to a harsher punishment.
+Extreme toxicity, including death threats or other malicious comments, is not tolerated. If you’re unsure whether something crosses the line, don’t say it.
 
 2. Unfair Gameplay
-Any form of hacks, macros, X-ray packs, autoclickers, minimaps, inventory checkers, bug abuse, exploiting, duping, Litematica Easyplace, health indicators, or other disallowed modifications are prohibited.
-Evading punishments through alternate accounts is forbidden.
-EasyMC accounts are STRICTLY prohibited.
+Any form of hacks, macros, X-ray packs, autoclickers, minimaps, inventory checkers, bug abuse, exploiting, duping, Litematica Easyplace, health indicators, or other disallowed modifications are prohibited. Final judgement on unfair advantages rests with staff.
+Evading punishments through alternate accounts, usernames, or similar methods is forbidden.
+EasyMC accounts are STRICTLY prohibited. Associating your account with one can result in a permanent ban.
 
 3. Inappropriate Content & Discrimination
-No sexual, hateful, or highly political discussions.
-No discrimination of any kind.
-Sexism, racism, homophobia, etc. = serious punishment.
+Discussions around sexual, hateful, or highly political topics are not welcome here.
+Building inappropriate structures, or using offensive team names, usernames, skins, capes, items, pets, or signs is not allowed
+Discrimination of any kind - whether based on age, gender, race, religion, disability, sex, or sexual orientation - will not be tolerated.
+Sexism, racism, homophobia, and similar behaviour will result in serious punishment.
 
 4. Advertising
-No self-promotion or advertising other servers.
-Streams must be EuropeMC-related.
+Self-promotion and advertising other Minecraft/Discord servers is forbidden.
+Item trading requests are allowed but cannot be publicly broadcast.
+YouTube or stream links must be EuropeMC-related, shared no more than once every 5 minutes via /live, or posted in the media channel. We encourage you to make content about the server!
 
 5. Scamming & Trading
-Real money trading = permanent ban.
-Scamming ranks = permanent ban.
+Scamming involving items from the EuropeMC store or materials outside the server is not allowed.
+In-game item scamming is permitted - so be careful who you trust.
+Real money trading (IRL deals) is strictly forbidden and will lead to a permanent ban.
+Scamming ranks is also a permanent ban offence with no appeal.
 
 6. Threats
-Doxing, DDoSing, blackmail, swatting, IP grabbing = instant blacklist.
+Doxing, DDoSing, harassment, blackmail, swatting, IP grabbing, malicious links, or any related threats will result in an instant network blacklist.
+Sharing someone’s personal information is not allowed, regardless of whether it’s true.
+Many of these actions are illegal. “Jokes” will be treated as seriously as real attempts.
+Providing false or misleading information in appeals will extend your punishment.
 
 7. Refunds Policy
-Items are exempt from the Consumer Rights Act 2015.
-Purchasing means you agree goods fall under "computer software" and "personalised or custom made items".
+Due to the intangible nature of our goods, items listed on our store are exempt from the Consumer Rights Act 2015. By purchasing an item on our store, you explicitly agree that our goods fall under the “computer software” and “personalised or custom made items”
+categories which exempt you from a Right of Return. You also agree to indemnify EuropeMC for legal costs that arise from pursuing a refund externally.
       `);
 
     return interaction.reply({ embeds: [embed] });

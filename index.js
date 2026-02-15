@@ -83,17 +83,24 @@ const commands = [
         .setDescription('Reason for warning')
         .setRequired(true)),
 
-  new SlashCommandBuilder()
-    .setName('blacklist')
-    .setDescription('Blacklist a user from media')
-    .addUserOption(option =>
-      option.setName('user')
-        .setDescription('User to blacklist')
-        .setRequired(true))
-    .addStringOption(option =>
-      option.setName('media')
-        .setDescription('Media reason')
-        .setRequired(true))
+  if (commandName === 'blacklist') {
+  const user = interaction.options.getUser('user');
+  const type = interaction.options.getString('type');
+
+  let roleName;
+
+  if (type === 'media') roleName = 'Media Blacklist';
+  if (type === 'staff') roleName = 'Staff Blacklist';
+
+  const role = interaction.guild.roles.cache.find(r => r.name === roleName);
+  if (!role) return interaction.reply({ content: `Role "${roleName}" not found.`, ephemeral: true });
+
+  const member = await interaction.guild.members.fetch(user.id);
+  await member.roles.add(role);
+
+  await interaction.reply(`🚫 ${user.tag} has been blacklisted (${type}).`);
+}
+
 
 ].map(command => command.toJSON());
 
@@ -178,8 +185,8 @@ Due to the intangible nature of our goods, items listed on our store are exempt 
       .setTitle('🌍 Server Information')
       .setColor('Green')
       .addFields(
-        { name: 'IP', value: '.europemc.net', inline: true },
-        { name: 'Port', value: '19132', inline: true },
+        { name: 'IP', value: '**europemc.eu**', inline: true },
+        { name: 'Port', value: '**19132**', inline: true },
         { name: 'How to Join', value: 'Open Minecraft → Add Server → Enter IP & Port' }
       );
 
@@ -212,17 +219,29 @@ Due to the intangible nature of our goods, items listed on our store are exempt 
     await interaction.reply(`👢 ${user.tag} has been kicked.`);
   }
 
-  if (commandName === 'mute') {
-    if (!interaction.member.permissions.has(PermissionsBitField.Flags.ModerateMembers))
-      return interaction.reply({ content: 'No permission.', ephemeral: true });
+if (commandName === 'mute') {
+  if (!interaction.member.permissions.has(PermissionsBitField.Flags.ModerateMembers))
+    return interaction.reply({ content: 'No permission.', ephemeral: true });
 
-    const user = interaction.options.getUser('user');
-    const minutes = interaction.options.getInteger('minutes');
+  const user = interaction.options.getUser('user');
+  const minutes = interaction.options.getInteger('minutes');
 
-    const member = await interaction.guild.members.fetch(user.id);
+  const member = await interaction.guild.members.fetch(user.id).catch(() => null);
+  if (!member)
+    return interaction.reply({ content: 'User not found.', ephemeral: true });
 
+  if (!member.moderatable)
+    return interaction.reply({ content: 'I cannot mute this user. Check role hierarchy.', ephemeral: true });
+
+  try {
     await member.timeout(minutes * 60 * 1000);
     await interaction.reply(`🔇 ${user.tag} muted for ${minutes} minutes.`);
+  } catch (err) {
+    console.error(err);
+    await interaction.reply({ content: 'Failed to mute user.', ephemeral: true });
+  }
+}
+
   }
 
   if (commandName === 'warn') {
@@ -231,17 +250,22 @@ Due to the intangible nature of our goods, items listed on our store are exempt 
 
     await interaction.reply(`⚠️ ${user.tag} has been warned. Reason: ${reason}`);
   }
+new SlashCommandBuilder()
+  .setName('blacklist')
+  .setDescription('Blacklist a user')
+  .addUserOption(option =>
+    option.setName('user')
+      .setDescription('User to blacklist')
+      .setRequired(true))
+  .addStringOption(option =>
+    option.setName('type')
+      .setDescription('Blacklist type')
+      .setRequired(true)
+      .addChoices(
+        { name: 'Media', value: 'media' },
+        { name: 'Staff', value: 'staff' }
+      ))
 
-  if (commandName === 'blacklist') {
-    const user = interaction.options.getUser('user');
-
-    const role = interaction.guild.roles.cache.find(r => r.name === 'Media Blacklist');
-    if (!role) return interaction.reply('Role "Media Blacklist" not found.');
-
-    const member = await interaction.guild.members.fetch(user.id);
-    await member.roles.add(role);
-
-    await interaction.reply(`🚫 ${user.tag} has been blacklisted from media.`);
   }
 
 });

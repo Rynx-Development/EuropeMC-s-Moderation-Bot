@@ -275,6 +275,7 @@ client.on('guildMemberAdd', member => {
     IP: **EuropeMC.eu** 
     Port: **19132** `)
     .setThumbnail(member.user.displayAvatarURL())
+    .setImage('https://image2url.com/r2/default/images/1771267224300-ffe56c76-9e6e-421e-9913-f50c4fbb3fbc.png')
     .setTimestamp();
 
   channel.send({ embeds: [embed] });

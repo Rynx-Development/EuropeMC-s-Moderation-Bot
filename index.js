@@ -268,10 +268,12 @@ client.on('guildMemberAdd', member => {
   if (!channel) return;
 
   const embed = new EmbedBuilder()
-    .setTitle('🎉 Welcome to EuropeMC!')
+    .setTitle('👋 Welcome to EuropeMC!')
     .setColor('Blue')
     .setDescription(`Hey ${member}, welcome to the server!\nMake sure to check out the rules and have fun!`)
-    .setDescription(`IP: EuropeMC.eu Port: 19132 Version: 1.21+  ・  Premium Java & Bedrock `)
+    .setDescription(`IP: **EuropeMC.eu** `)
+    .setDescription(`Port: **19132** `)
+    .setDescription(`Version: **1.21+** ・ Premium Java & Bedrock!`)
     .setThumbnail(member.user.displayAvatarURL())
     .setTimestamp();
 

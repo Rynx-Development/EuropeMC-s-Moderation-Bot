@@ -107,7 +107,7 @@ client.on('interactionCreate', async interaction => {
   // RULES 
   if (commandName === 'rules') {
     const embed = new EmbedBuilder()
-      .setTitle('📜 Server Rules')
+      .setTitle('📜 EuropeMC Server Rules!')
       .setColor('Blue')
       .setDescription(`
 1. Chat Conduct
@@ -177,7 +177,7 @@ if (commandName === 'server') {
     const reason = interaction.options.getString('reason') || 'No reason provided';
 
     await interaction.guild.members.ban(user.id, { reason });
-    return interaction.reply(`🔨 ${user.tag} has been banned.`);
+    return interaction.reply(`📌 ${user.tag} has been banned.`);
   }
 
   //  KICK COMMAND
@@ -190,7 +190,7 @@ if (commandName === 'server') {
 
     const member = await interaction.guild.members.fetch(user.id);
     await member.kick(reason);
-    return interaction.reply(`👢 ${user.tag} has been kicked.`);
+    return interaction.reply(`🔨 ${user.tag} has been kicked!.`);
   }
 
   // MUTE COMMAND
@@ -203,14 +203,14 @@ if (commandName === 'server') {
       return interaction.reply({ content: 'User not found.', ephemeral: true });
 
     await member.timeout(minutes * 60 * 1000);
-    return interaction.reply(`🔇 ${user.tag} muted for ${minutes} minutes.`);
+    return interaction.reply(`🔇 ${user.tag} has been muted for ${minutes} minutes.`);
   }
 
   //  WARN COMMAND
   if (commandName === 'warn') {
     const user = interaction.options.getUser('user');
     const reason = interaction.options.getString('reason');
-    return interaction.reply(`⚠️ ${user.tag} warned. Reason: ${reason}`);
+    return interaction.reply(`⚠️ ${user.tag} has been warned. Reason: ${reason}`);
   }
 
   // BLACKLIST COMMAND
@@ -229,7 +229,7 @@ if (commandName === 'server') {
     const member = await interaction.guild.members.fetch(user.id);
     await member.roles.add(role);
 
-    return interaction.reply(`🚫 ${user.tag} blacklisted (${type}).`);
+    return interaction.reply(`🚫 ${user.tag} has been blacklisted! (${type}).`);
   }
 });
 

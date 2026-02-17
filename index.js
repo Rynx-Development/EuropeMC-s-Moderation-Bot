@@ -73,6 +73,23 @@ const commands = [
     .setDescription('Set welcome channel')
     .addChannelOption(o => o.setName('channel').setDescription('Channel').setRequired(true))
 
+  new SlashCommandBuilder()
+  .setName('blacklist')
+  .setDescription('Blacklist a user')
+  .addUserOption(o =>
+    o.setName('user')
+      .setDescription('User to blacklist')
+      .setRequired(true))
+  .addStringOption(o =>
+    o.setName('type')
+      .setDescription('Blacklist type')
+      .setRequired(true)
+      .addChoices(
+        { name: 'Media', value: 'media' },
+        { name: 'Staff', value: 'staff' }
+      )),
+
+
 ].map(cmd => cmd.toJSON());
 
 
@@ -271,6 +288,19 @@ Port: **19132**
   }
 });
 
+// BLACKLIST
+
+if (commandName === 'blacklist') {
+
+  if (!interaction.member.permissions.has(PermissionsBitField.Flags.ModerateMembers))
+    return interaction.reply({ content: '❌ No permission.', ephemeral: true });
+
+  const user = interaction.options.getUser('user');
+  const type = interaction.options.getString('type');
+
+  return interaction.reply(`🚫 ${user.tag} has been blacklisted from ${type}.`);
+}
+
 // SERVER
 
 client.on('messageCreate', message => {
@@ -299,7 +329,7 @@ Port: **19132**
 
 //  WELCOME EVENT 
 
-client.on('guildMemberAdd', member => {
+client.on('guildMemberAdd', async member => {
 
   if (!welcomeChannelId) return;
 
@@ -307,21 +337,24 @@ client.on('guildMemberAdd', member => {
   if (!channel) return;
 
   const embed = new EmbedBuilder()
+    .setColor('#2b6cff')
     .setTitle('👋 Welcome to EuropeMC!')
-    .setColor('Blue')
     .setDescription(`
-Version: **1.21+** • Premium Java & Bedrock!
-IP: **EuropeMC.eu**
-Port: **19132**
+Welcome ${member} to **EuropeMC**!
+
+🌍 **IP:** EuropeMC.eu  
+🔌 **Port:** 19132  
+🧱 **Version:** 1.21+ (Java & Bedrock)
+
+Make sure to read the rules and enjoy your stay!
     `)
-    .setThumbnail(member.user.displayAvatarURL())
-    .setImage('YOUR_BANNER_LINK_HERE')
+    .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
+    .setImage('https://image2url.com/r2/default/images/1771341614059-80848087-7c35-48db-873a-1326163685e0.png') 
+    .setFooter({ text: `Member #${member.guild.memberCount}` })
     .setTimestamp();
 
-  channel.send({
-    content: `🎉 Welcome ${member}!`,
-    embeds: [embed]
-  });
+  await channel.send({ embeds: [embed] });
+
 });
 
 

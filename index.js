@@ -17,99 +17,66 @@ const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
-    GatewayIntentBits.GuildMessages
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent
   ],
   partials: [Partials.Channel]
 });
 
-// Store welcome channel (simple in-memory storage)
 let welcomeChannelId = null;
 
 client.once('ready', () => {
-  console.log(`Logged in as ${client.user.tag}`);
+  console.log(`✅ Logged in as ${client.user.tag}`);
 });
 
-//  SLASH COMMANDS 
+
+// SLASH COMMANDS 
 
 const commands = [
 
-  new SlashCommandBuilder()
-    .setName('rules')
-    .setDescription('Shows the server rules'),
+  new SlashCommandBuilder().setName('rules').setDescription('Show server rules'),
 
-  new SlashCommandBuilder()
-    .setName('server')
-    .setDescription('Shows server information'),
+  new SlashCommandBuilder().setName('server').setDescription('Show server info'),
+
+  new SlashCommandBuilder().setName('ping').setDescription('Check bot latency'),
 
   new SlashCommandBuilder()
     .setName('ban')
     .setDescription('Ban a user')
-    .addUserOption(option =>
-      option.setName('user').setDescription('User to ban').setRequired(true))
-    .addStringOption(option =>
-      option.setName('reason').setDescription('Reason').setRequired(false)),
+    .addUserOption(o => o.setName('user').setDescription('User').setRequired(true))
+    .addStringOption(o => o.setName('reason').setDescription('Reason')),
 
   new SlashCommandBuilder()
     .setName('unban')
     .setDescription('Unban a user')
-    .addStringOption(option =>
-      option.setName('userid').setDescription('User ID to unban').setRequired(true)),
+    .addStringOption(o => o.setName('userid').setDescription('User ID').setRequired(true)),
 
   new SlashCommandBuilder()
     .setName('kick')
     .setDescription('Kick a user')
-    .addUserOption(option =>
-      option.setName('user').setDescription('User to kick').setRequired(true))
-    .addStringOption(option =>
-      option.setName('reason').setDescription('Reason').setRequired(false)),
+    .addUserOption(o => o.setName('user').setDescription('User').setRequired(true))
+    .addStringOption(o => o.setName('reason').setDescription('Reason')),
 
   new SlashCommandBuilder()
     .setName('mute')
     .setDescription('Timeout a user')
-    .addUserOption(option =>
-      option.setName('user').setDescription('User to mute').setRequired(true))
-    .addIntegerOption(option =>
-      option.setName('minutes').setDescription('Duration in minutes').setRequired(true)),
+    .addUserOption(o => o.setName('user').setDescription('User').setRequired(true))
+    .addIntegerOption(o => o.setName('minutes').setDescription('Minutes').setRequired(true)),
 
   new SlashCommandBuilder()
     .setName('unmute')
-    .setDescription('Remove timeout from a user')
-    .addUserOption(option =>
-      option.setName('user').setDescription('User to unmute').setRequired(true)),
-
-  new SlashCommandBuilder()
-    .setName('warn')
-    .setDescription('Warn a user')
-    .addUserOption(option =>
-      option.setName('user').setDescription('User to warn').setRequired(true))
-    .addStringOption(option =>
-      option.setName('reason').setDescription('Reason').setRequired(true)),
-
-  new SlashCommandBuilder()
-    .setName('blacklist')
-    .setDescription('Blacklist a user')
-    .addUserOption(option =>
-      option.setName('user').setDescription('User').setRequired(true))
-    .addStringOption(option =>
-      option.setName('type')
-        .setDescription('Blacklist type')
-        .setRequired(true)
-        .addChoices(
-          { name: 'Media', value: 'media' },
-          { name: 'Staff', value: 'staff' }
-        )),
+    .setDescription('Remove timeout')
+    .addUserOption(o => o.setName('user').setDescription('User').setRequired(true)),
 
   new SlashCommandBuilder()
     .setName('setupwelcome')
-    .setDescription('Set the welcome channel')
-    .addChannelOption(option =>
-      option.setName('channel')
-        .setDescription('Channel for welcome messages')
-        .setRequired(true))
+    .setDescription('Set welcome channel')
+    .addChannelOption(o => o.setName('channel').setDescription('Channel').setRequired(true))
 
 ].map(cmd => cmd.toJSON());
 
-// REGISTER 
+
+//  REGISTER COMMANDS
 
 const rest = new REST({ version: '10' }).setToken(TOKEN);
 
@@ -119,149 +86,221 @@ const rest = new REST({ version: '10' }).setToken(TOKEN);
       Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
       { body: commands }
     );
-    console.log('Slash commands registered.');
+    console.log("✅ Slash commands registered.");
   } catch (err) {
     console.error(err);
   }
 })();
+
 
 //  INTERACTIONS 
 
 client.on('interactionCreate', async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
-  const { commandName } = interaction;
+  try {
 
-  //  RULES 
-  if (commandName === 'rules') {
-    const embed = new EmbedBuilder()
-      .setTitle('📜 Server Rules')
-      .setColor('Blue')
-      .setDescription(`
+    const { commandName } = interaction;
 
-1. Chat Conduct
+    // RULES
+    if (commandName === 'rules') {
+      const embed = new EmbedBuilder()
+        .setTitle('📜 Server Rules')
+        .setColor('Blue')
+        .setDescription(`
+**EuropeMC Network Rules**
+Chat Conduct
 
 Use respectful language at all times. Abusive messages, inappropriate jokes, harassment, or spreading false information are not allowed.
 Do not flood the chat with repeated or similar messages, long texts, non-English characters, or excessive use of ALL CAPS. Spam of any kind is not permitted. Attempting to bypass the chat filter will lead to a harsher punishment.
 Extreme toxicity, including death threats or other malicious comments, is not tolerated. If you’re unsure whether something crosses the line, don’t say it.
 
-2. Unfair Gameplay
+Unfair Gameplay
 
 Any form of hacks, macros, X-ray packs, autoclickers, minimaps, inventory checkers, bug abuse, exploiting, duping, Litematica Easyplace, health indicators, or other disallowed modifications are prohibited. Final judgement on unfair advantages rests with staff.
 Evading punishments through alternate accounts, usernames, or similar methods is forbidden.
 EasyMC accounts are STRICTLY prohibited. Associating your account with one can result in a permanent ban.
 
- 3. Inappropriate Content
+ Inappropriate Content
 
 Discussions around sexual, hateful, or highly political topics are not welcome here.
 Building inappropriate structures, or using offensive team names, usernames, skins, capes, items, pets, or signs is not allowed.
 
-4. Discrimination
+Discrimination
 
 Discrimination of any kind - whether based on age, gender, race, religion, disability, sex, or sexual orientation - will not be tolerated.
 Sexism, racism, homophobia, and similar behaviour will result in serious punishment.
 
-5. Advertising
+Advertising
 
 Self-promotion and advertising other Minecraft/Discord servers is forbidden.
 Item trading requests are allowed but cannot be publicly broadcast.
 YouTube or stream links must be EuropeMC-related, shared no more than once every 5 minutes via /live, or posted in the media channel. We encourage you to make content about the server!
 
-6. Scamming & Trading
+Scamming & Trading
 
 Scamming involving items from the EuropeMC store or materials outside the server is not allowed.
 In-game item scamming is permitted - so be careful who you trust.
 Real money trading (IRL deals) is strictly forbidden and will lead to a permanent ban.
 Scamming ranks is also a permanent ban offence with no appeal.
 
-7. Threats
+Threats
 
 Doxing, DDoSing, harassment, blackmail, swatting, IP grabbing, malicious links, or any related threats will result in an instant network blacklist.
 Sharing someone’s personal information is not allowed, regardless of whether it’s true.
 Many of these actions are illegal. “Jokes” will be treated as seriously as real attempts.
 Providing false or misleading information in appeals will extend your punishment.
 
-8. Mega Farms
+Mega Farms
 
 While our economy is spawner-based, EuropeMC may remove farms that cause lag - without prior warning. If you’re unsure about your farm design, open a ticket and staff will help you.
 
-9, Refunds Policy
+Refunds Policy
 
 Due to the intangible nature of our goods, items listed on our store are exempt from the Consumer Rights Act 2015.
 By purchasing an item on our store, you explicitly agree that our goods fall under the “computer software” and “personalised or custom made items” categories which exempt you from a Right of Return. You also agree to indemnify EuropeMC for legal costs that arise from pursuing a refund externally.
+        `);
 
-      `);
+      return interaction.reply({ embeds: [embed] });
+    }
 
-    return interaction.reply({ embeds: [embed] });
-  }
+    // SERVER
+    if (commandName === 'server') {
+      const embed = new EmbedBuilder()
+        .setTitle('🌍 EuropeMC')
+        .setColor('Blue')
+        .setDescription(`
+Version: **1.21+** • Premium Java & Bedrock!
+IP: **EuropeMC.eu**
+Port: **19132**
+        `);
 
-  // SERVER 
-  if (commandName === 'server') {
-    const embed = new EmbedBuilder()
-      .setTitle('🌍 EuropeMC Server Information')
-      .setColor('Blue')
-      .addFields(
-        { name: 'Server IP', value: 'europemc.eu', inline: true },
-        { name: 'Port', value: '19132', inline: true },
-        { name: 'Version', value: '1.21+', inline: true },
-        { name: 'Store', value: 'https://store.europemc.eu/', inline: false }
-      )
-      .setTimestamp();
+      return interaction.reply({ embeds: [embed] });
+    }
 
-    return interaction.reply({ embeds: [embed] });
-  }
+    // PING
+    if (commandName === 'ping') {
+      return interaction.reply(`🏓 Pong! ${client.ws.ping}ms`);
+    }
 
-  //  BAN  
-  if (commandName === 'ban') {
-    if (!interaction.member.permissions.has(PermissionsBitField.Flags.BanMembers))
-      return interaction.reply({ content: 'No permission.', ephemeral: true });
+    // BAN
+    if (commandName === 'ban') {
+      if (!interaction.member.permissions.has(PermissionsBitField.Flags.BanMembers))
+        return interaction.reply({ content: '❌ No permission.', ephemeral: true });
 
-    const user = interaction.options.getUser('user');
-    const reason = interaction.options.getString('reason') || 'No reason provided';
+      const user = interaction.options.getUser('user');
+      const reason = interaction.options.getString('reason') || 'No reason';
 
-    await interaction.guild.members.ban(user.id, { reason });
-    return interaction.reply(`🔨 ${user.tag} has been banned.`);
-  }
+      await interaction.guild.members.ban(user.id, { reason });
 
-  //  UNBAN 
-  if (commandName === 'unban') {
-    const userId = interaction.options.getString('userid');
-    await interaction.guild.members.unban(userId);
-    return interaction.reply(`✅ User with ID ${userId} has been unbanned.`);
-  }
+      return interaction.reply(`🔨 ${user.tag} has been banned.`);
+    }
 
-  //  MUTE
-  if (commandName === 'mute') {
-    const user = interaction.options.getUser('user');
-    const minutes = interaction.options.getInteger('minutes');
+    // UNBAN
+    if (commandName === 'unban') {
+      if (!interaction.member.permissions.has(PermissionsBitField.Flags.BanMembers))
+        return interaction.reply({ content: '❌ No permission.', ephemeral: true });
 
-    const member = await interaction.guild.members.fetch(user.id);
-    await member.timeout(minutes * 60 * 1000);
+      const id = interaction.options.getString('userid');
 
-    return interaction.reply(`🔇 ${user.tag} muted for ${minutes} minutes.`);
-  }
+      await interaction.guild.members.unban(id);
 
-  // UNMUTE
-  if (commandName === 'unmute') {
-    const user = interaction.options.getUser('user');
-    const member = await interaction.guild.members.fetch(user.id);
+      return interaction.reply(`✅ User has been unbanned!`);
+    }
 
-    await member.timeout(null);
-    return interaction.reply(`🔊 ${user.tag} has been unmuted.`);
-  }
+    // KICK
+    if (commandName === 'kick') {
+      if (!interaction.member.permissions.has(PermissionsBitField.Flags.KickMembers))
+        return interaction.reply({ content: '❌ No permission.', ephemeral: true });
 
-  //  SETUP WELCOME
-  if (commandName === 'setupwelcome') {
-    const channel = interaction.options.getChannel('channel');
-    welcomeChannelId = channel.id;
+      const user = interaction.options.getUser('user');
+      const reason = interaction.options.getString('reason') || 'No reason';
 
-    return interaction.reply(`✅ Welcome channel set to ${channel}.`);
+      const member = await interaction.guild.members.fetch(user.id);
+
+      if (!member.kickable)
+        return interaction.reply({ content: '❌ Cannot kick this user.', ephemeral: true });
+
+      await member.kick(reason);
+
+      return interaction.reply(`✈️ ${user.tag} has been kicked.`);
+    }
+
+    // MUTE
+    if (commandName === 'mute') {
+      if (!interaction.member.permissions.has(PermissionsBitField.Flags.ModerateMembers))
+        return interaction.reply({ content: '❌ No permission.', ephemeral: true });
+
+      const user = interaction.options.getUser('user');
+      const minutes = interaction.options.getInteger('minutes');
+
+      const member = await interaction.guild.members.fetch(user.id);
+      await member.timeout(minutes * 60000);
+
+      return interaction.reply(`🔇 ${user.tag} has been muted for ${minutes} minutes.`);
+    }
+
+    // UNMUTE
+    if (commandName === 'unmute') {
+      if (!interaction.member.permissions.has(PermissionsBitField.Flags.ModerateMembers))
+        return interaction.reply({ content: '❌ No permission.', ephemeral: true });
+
+      const user = interaction.options.getUser('user');
+      const member = await interaction.guild.members.fetch(user.id);
+
+      await member.timeout(null);
+
+      return interaction.reply(`🔊 ${user.tag} has been unmuted.`);
+    }
+
+    // SETUP WELCOME
+    if (commandName === 'setupwelcome') {
+      if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator))
+        return interaction.reply({ content: '❌ Admin only.', ephemeral: true });
+
+      const channel = interaction.options.getChannel('channel');
+      welcomeChannelId = channel.id;
+
+      return interaction.reply(`✅ Welcome channel set to ${channel}.`);
+    }
+
+  } catch (err) {
+    console.error(err);
+    if (!interaction.replied)
+      interaction.reply({ content: '⚠️ Error occurred.', ephemeral: true });
   }
 });
 
-// WELCOME EVENT 
+// SERVER
+
+client.on('messageCreate', message => {
+  if (message.author.bot) return;
+
+  // !ip
+  if (message.content.toLowerCase() === '!ip') {
+    const embed = new EmbedBuilder()
+      .setTitle('🌍 EuropeMC')
+      .setColor('Blue')
+      .setDescription(`
+Version: **1.21+** • Premium Java & Bedrock!
+IP: **EuropeMC.eu**
+Port: **19132**
+      `);
+
+    message.channel.send({ embeds: [embed] });
+  }
+
+  // !rynx
+  if (message.content.toLowerCase() === '!rynx') {
+    message.channel.send("Yeah you are correct rynx made this bot 😎");
+  }
+});
+
+
+//  WELCOME EVENT 
 
 client.on('guildMemberAdd', member => {
+
   if (!welcomeChannelId) return;
 
   const channel = member.guild.channels.cache.get(welcomeChannelId);
@@ -270,20 +309,20 @@ client.on('guildMemberAdd', member => {
   const embed = new EmbedBuilder()
     .setTitle('👋 Welcome to EuropeMC!')
     .setColor('Blue')
-    .setDescription(`Hey ${member}, welcome to the server!\nMake sure to check out the rules and have fun!`)
-    .setDescription(`Version: **1.21+** ・ Premium Java & Bedrock!
-    IP: **EuropeMC.eu** 
-    Port: **19132** `)
+    .setDescription(`
+Version: **1.21+** • Premium Java & Bedrock!
+IP: **EuropeMC.eu**
+Port: **19132**
+    `)
     .setThumbnail(member.user.displayAvatarURL())
-    .setImage('https://image2url.com/r2/default/images/1771267224300-ffe56c76-9e6e-421e-9913-f50c4fbb3fbc.png')
+    .setImage('YOUR_BANNER_LINK_HERE')
     .setTimestamp();
 
-channel.send({
-  content: `🎉 Welcome ${member}!`,
-  embeds: [embed]
+  channel.send({
+    content: `🎉 Welcome ${member}!`,
+    embeds: [embed]
+  });
 });
 
-});
 
 client.login(TOKEN);
-

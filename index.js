@@ -237,11 +237,12 @@ By purchasing an item on our store, you explicitly agree that our goods fall und
       return interaction.reply({ embeds: [embed] });
     }
 
-    if (commandName === 'server')
-      return interaction.reply('🌍 EuropeMC.eu ')
-     '(  Version 1.21+ ')
-     '( Java & Bedrock ')
-    '( Port: 19132 ')
+if (commandName === 'server') {
+  return interaction.reply(`🔵 EuropeMC.eu
+Version 1.21+
+Java & Bedrock
+Port: 19132`);
+}
 
     if (commandName === 'userinfo') {
       const user = interaction.options.getUser('user') || interaction.user;

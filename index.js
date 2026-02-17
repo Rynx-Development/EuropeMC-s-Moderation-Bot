@@ -23,84 +23,97 @@ const token = process.env.TOKEN;
 const clientId = process.env.CLIENT_ID;
 const guildId = process.env.GUILD_ID;
 
-
 let welcomeChannelId = null;
 
 // SLASH COMMANDS 
 
 const commands = [
 
-  new SlashCommandBuilder().setName('ping').setDescription('Ping Pong'),
+  new SlashCommandBuilder().setName('ping').setDescription('Show bot latency'),
 
   new SlashCommandBuilder().setName('help').setDescription('List all commands'),
 
   new SlashCommandBuilder().setName('rules').setDescription('Show server rules'),
 
-  new SlashCommandBuilder().setName('server').setDescription('Minecraft server info'),
+  new SlashCommandBuilder().setName('server').setDescription('Show Minecraft server info'),
+
+  new SlashCommandBuilder().setName('serverinfo').setDescription('Show Discord server info'),
 
   new SlashCommandBuilder()
     .setName('userinfo')
     .setDescription('Show user info')
     .addUserOption(o =>
-      o.setName('user').setDescription('User').setRequired(false)
+      o.setName('user').setDescription('Select user').setRequired(false)
     ),
-
-  new SlashCommandBuilder().setName('serverinfo').setDescription('Server details'),
 
   new SlashCommandBuilder()
     .setName('setupwelcome')
     .setDescription('Set welcome channel')
     .addChannelOption(o =>
       o.setName('channel').setDescription('Channel').setRequired(true)
-    ),
+    )
+    .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
 
   new SlashCommandBuilder()
     .setName('kick')
-    .setDescription('Kick a user')
+    .setDescription('Kick member')
     .addUserOption(o =>
       o.setName('user').setDescription('User').setRequired(true)
-    ),
+    )
+    .setDefaultMemberPermissions(PermissionsBitField.Flags.KickMembers),
 
   new SlashCommandBuilder()
     .setName('ban')
-    .setDescription('Ban a user')
+    .setDescription('Ban member')
     .addUserOption(o =>
       o.setName('user').setDescription('User').setRequired(true)
-    ),
+    )
+    .setDefaultMemberPermissions(PermissionsBitField.Flags.BanMembers),
 
   new SlashCommandBuilder()
     .setName('unban')
-    .setDescription('Unban a user')
+    .setDescription('Unban user')
     .addStringOption(o =>
       o.setName('userid').setDescription('User ID').setRequired(true)
-    ),
+    )
+    .setDefaultMemberPermissions(PermissionsBitField.Flags.BanMembers),
 
   new SlashCommandBuilder()
     .setName('timeout')
-    .setDescription('Timeout user')
+    .setDescription('Timeout member')
     .addUserOption(o =>
       o.setName('user').setDescription('User').setRequired(true)
     )
     .addIntegerOption(o =>
       o.setName('minutes').setDescription('Minutes').setRequired(true)
-    ),
+    )
+    .setDefaultMemberPermissions(PermissionsBitField.Flags.ModerateMembers),
 
   new SlashCommandBuilder()
     .setName('clear')
-    .setDescription('Clear messages')
+    .setDescription('Delete messages')
     .addIntegerOption(o =>
       o.setName('amount').setDescription('Amount').setRequired(true)
-    ),
+    )
+    .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageMessages),
 
-  new SlashCommandBuilder().setName('lock').setDescription('Lock channel'),
-  new SlashCommandBuilder().setName('unlock').setDescription('Unlock channel'),
+  new SlashCommandBuilder()
+    .setName('lock')
+    .setDescription('Lock channel')
+    .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageChannels),
+
+  new SlashCommandBuilder()
+    .setName('unlock')
+    .setDescription('Unlock channel')
+    .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageChannels),
 
   new SlashCommandBuilder()
     .setName('announce')
     .setDescription('Send announcement')
     .addStringOption(o =>
       o.setName('message').setDescription('Message').setRequired(true)
-    ),
+    )
+    .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageGuild),
 
   new SlashCommandBuilder()
     .setName('blacklist')
@@ -108,10 +121,18 @@ const commands = [
     .addUserOption(o =>
       o.setName('user').setDescription('User').setRequired(true)
     )
+    .addStringOption(o =>
+      o.setName('type')
+        .setDescription('Blacklist type')
+        .setRequired(true)
+        .addChoices(
+          { name: 'Media', value: 'Media Blacklist' },
+          { name: 'Staff', value: 'Staff Blacklist' }
+        )
+    )
+    .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageRoles)
 
 ].map(cmd => cmd.toJSON());
-
-//  REGISTER 
 
 const rest = new REST({ version: '10' }).setToken(token);
 
@@ -120,66 +141,66 @@ const rest = new REST({ version: '10' }).setToken(token);
     Routes.applicationGuildCommands(clientId, guildId),
     { body: commands }
   );
-  console.log("Slash commands registered.");
 })();
 
-// READY 
-client.once('ready', () => {
-  console.log(`${client.user.tag} is online.`);
-});
-
-// WELCOME 
-
-client.on('guildMemberAdd', async member => {
-  if (!welcomeChannelId) return;
-
-  const channel = member.guild.channels.cache.get(welcomeChannelId);
-  if (!channel) return;
-
-  const embed = new EmbedBuilder()
-    .setColor('#2b6cff')
-    .setTitle('👋 Welcome!')
-    .setDescription(`Welcome ${member} to the server!`)
-    .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
-    .setFooter({ text: `Member #${member.guild.memberCount}` })
-    .setTimestamp();
-
-  channel.send({ embeds: [embed] });
-});
-
-// PREFIX
+// PREFIX COMMANDS 
 
 client.on('messageCreate', message => {
   if (message.author.bot) return;
 
   if (message.content === '!ip')
-    message.reply('🌍 Server IP: **EuropeMC.eu**');
+    return message.reply('IP: EuropeMC.eu\nPort: 19132\nVersion: 1.21+');
 
   if (message.content === '!rynx')
-    message.reply('Yeah you are correct rynx made this bot');
+    return message.reply('Yeah you are correct rynx made this bot');
 });
 
-// SLASH HANDLER 
+// INTERACTIONS 
 
 client.on('interactionCreate', async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
-  const { commandName } = interaction;
-
   try {
 
-    if (commandName === 'ping')
-      return interaction.reply('🏓 Pong!');
+    const name = interaction.commandName;
 
-    if (commandName === 'help')
-      return interaction.reply('/ping /rules /server /userinfo /kick /ban /timeout /clear /lock /unlock /announce /blacklist');
+    if (name === 'ping')
+      return interaction.reply(`🏓 Pong! ${client.ws.ping}ms`);
 
-    if (commandName === 'rules') {
+    if (name === 'help') {
       const embed = new EmbedBuilder()
         .setColor('#2b6cff')
-        .setTitle('📜 EuropeMC Network Rules')
+        .setTitle('📜 EuropeMC Commands')
         .setDescription(`
-**EuropeMC Network Rules**
+**General**
+/ping
+/help
+/rules
+/server
+/userinfo
+/serverinfo
+
+**Moderation**
+/kick
+/ban
+/unban
+/timeout
+/clear
+/lock
+/unlock
+/announce
+/blacklist
+
+        `);
+      return interaction.reply({ embeds: [embed] });
+    }
+
+    if (name === 'rules') {
+      const embed = new EmbedBuilder()
+        .setColor('#2b6cff')
+        .setTitle('📖 Server Rules')
+        .setDescription(`
+**EUROPEMC NETWORK RULES!**
 
 Chat Conduct
 
@@ -229,92 +250,114 @@ While our economy is spawner-based, EuropeMC may remove farms that cause lag - w
 
 Refunds Policy
 
-Due to the intangible nature of our goods, items listed on our store are exempt from the Consumer Rights Act 2015.
+Due to the intangible nature of our goods, items listed on our store are exempt from the Consumer Rights Act 2015. 
 By purchasing an item on our store, you explicitly agree that our goods fall under the “computer software” and “personalised or custom made items” categories which exempt you from a Right of Return. You also agree to indemnify EuropeMC for legal costs that arise from pursuing a refund externally.
-        `)
+        `);
+      return interaction.reply({ embeds: [embed] });
+    }
+
+    if (name === 'server') {
+      const embed = new EmbedBuilder()
+        .setColor('#2b6cff')
+        .setTitle('🌍 EuropeMC Server Information')
+        .addFields(
+          { name: 'Server IP', value: 'europemc.eu', inline: true },
+          { name: 'Port', value: '19132', inline: true },
+          { name: 'Version', value: '1.21+', inline: true },
+          { name: 'Store', value: 'https://store.europemc.eu/' }
+        )
+        .setFooter({ text: 'Join now and start playing!' })
         .setTimestamp();
 
       return interaction.reply({ embeds: [embed] });
     }
 
-if (commandName === 'server') {
-  return interaction.reply(`🔵 EuropeMC.eu
-Version 1.21+
-Java & Bedrock
-Port: 19132`);
-}
+    if (name === 'serverinfo') {
+      const embed = new EmbedBuilder()
+        .setColor('#2b6cff')
+        .setTitle('🏠 Discord Server Information')
+        .addFields(
+          { name: 'Server Name', value: interaction.guild.name, inline: true },
+          { name: 'Members', value: `${interaction.guild.memberCount}`, inline: true },
+          { name: 'Owner', value: `<@${interaction.guild.ownerId}>`, inline: true }
+        )
+        .setTimestamp();
 
-    if (commandName === 'userinfo') {
-      const user = interaction.options.getUser('user') || interaction.user;
-      return interaction.reply(`User: ${user.tag}\nID: ${user.id}`);
+      return interaction.reply({ embeds: [embed] });
     }
 
-    if (commandName === 'serverinfo')
-      return interaction.reply(`Server: ${interaction.guild.name}\nMembers: ${interaction.guild.memberCount}`);
+    if (name === 'userinfo') {
+      const user = interaction.options.getUser('user') || interaction.user;
+      const member = interaction.guild.members.cache.get(user.id);
 
-    if (commandName === 'setupwelcome') {
-      if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator))
-        return interaction.reply({ content: 'No permission.', ephemeral: true });
+      const embed = new EmbedBuilder()
+        .setColor('#2b6cff')
+        .setTitle('👤 User Information')
+        .setThumbnail(user.displayAvatarURL())
+        .addFields(
+          { name: 'Username', value: user.tag, inline: true },
+          { name: 'Joined', value: `<t:${Math.floor(member.joinedTimestamp / 1000)}:R>`, inline: true },
+          { name: 'Account Created', value: `<t:${Math.floor(user.createdTimestamp / 1000)}:R>`, inline: true }
+        )
+        .setTimestamp();
 
+      return interaction.reply({ embeds: [embed] });
+    }
+
+    if (name === 'setupwelcome') {
       const channel = interaction.options.getChannel('channel');
       welcomeChannelId = channel.id;
-      return interaction.reply(`Welcome channel set to ${channel}`);
+      return interaction.reply(`✅ Welcome channel set to ${channel}`);
     }
 
-    if (commandName === 'kick') {
-      if (!interaction.member.permissions.has(PermissionsBitField.Flags.KickMembers))
-        return interaction.reply({ content: 'No permission.', ephemeral: true });
-
-      const user = interaction.options.getUser('user');
-      const member = await interaction.guild.members.fetch(user.id);
+    if (name === 'kick') {
+      const member = interaction.options.getMember('user');
       await member.kick();
-      return interaction.reply(`${user.tag} has been kicked.`);
+      return interaction.reply('👢 Member kicked.');
     }
 
-    if (commandName === 'ban') {
-      if (!interaction.member.permissions.has(PermissionsBitField.Flags.BanMembers))
-        return interaction.reply({ content: 'No permission.', ephemeral: true });
-
-      const user = interaction.options.getUser('user');
-      await interaction.guild.members.ban(user.id);
-      return interaction.reply(`${user.tag} has been banned.`);
+    if (name === 'ban') {
+      const member = interaction.options.getMember('user');
+      await member.ban();
+      return interaction.reply('🔨 Member banned.');
     }
 
-    if (commandName === 'unban') {
+    if (name === 'unban') {
       const id = interaction.options.getString('userid');
       await interaction.guild.members.unban(id);
-      return interaction.reply(`User ${id} has been unbanned.`);
+      return interaction.reply('✅ User unbanned.');
     }
 
-    if (commandName === 'timeout') {
-      const user = interaction.options.getUser('user');
+    if (name === 'timeout') {
+      const member = interaction.options.getMember('user');
       const minutes = interaction.options.getInteger('minutes');
-      const member = await interaction.guild.members.fetch(user.id);
       await member.timeout(minutes * 60000);
-      return interaction.reply(`${user.tag} has been timed out for ${minutes} minutes.`);
+      return interaction.reply(`⏳ Timed out for ${minutes} minutes.`);
     }
 
-    if (commandName === 'clear') {
+    if (name === 'clear') {
       const amount = interaction.options.getInteger('amount');
       await interaction.channel.bulkDelete(amount, true);
-      return interaction.reply({ content: `Deleted ${amount} messages.`, ephemeral: true });
+      return interaction.reply({ content: `🗑 Deleted ${amount} messages.`, ephemeral: true });
     }
 
-    if (commandName === 'lock') {
-      await interaction.channel.permissionOverwrites.edit(interaction.guild.roles.everyone, {
-        SendMessages: false
-      });
+    if (name === 'lock') {
+      await interaction.channel.permissionOverwrites.edit(
+        interaction.guild.roles.everyone,
+        { SendMessages: false }
+      );
       return interaction.reply('🔒 Channel locked.');
     }
 
-    if (commandName === 'unlock') {
-      await interaction.channel.permissionOverwrites.edit(interaction.guild.roles.everyone, {
-        SendMessages: true
-      });
+    if (name === 'unlock') {
+      await interaction.channel.permissionOverwrites.edit(
+        interaction.guild.roles.everyone,
+        { SendMessages: true }
+      );
       return interaction.reply('🔓 Channel unlocked.');
     }
 
-    if (commandName === 'announce') {
+    if (name === 'announce') {
       const msg = interaction.options.getString('message');
       const embed = new EmbedBuilder()
         .setColor('#ff0000')
@@ -325,19 +368,48 @@ Port: 19132`);
       return interaction.reply({ embeds: [embed] });
     }
 
-    if (commandName === 'blacklist') {
-      const user = interaction.options.getUser('user');
-      const member = await interaction.guild.members.fetch(user.id);
-      const role = interaction.guild.roles.cache.find(r => r.name === "Blacklisted");
-      if (role) await member.roles.add(role);
-      return interaction.reply(`${user.tag} blacklisted.`);
+    if (name === 'blacklist') {
+      const member = interaction.options.getMember('user');
+      const roleName = interaction.options.getString('type');
+      const role = interaction.guild.roles.cache.find(r => r.name === roleName);
+
+      if (!role)
+        return interaction.reply({ content: '❌ Blacklist role not found.', ephemeral: true });
+
+      await member.roles.add(role);
+      return interaction.reply(`🚫 ${member.user.tag} has been blacklisted from (${roleName}).`);
     }
 
   } catch (err) {
     console.error(err);
-    interaction.reply({ content: 'Error occurred.', ephemeral: true });
+    if (!interaction.replied)
+      interaction.reply({ content: '❌ Something went wrong.', ephemeral: true });
   }
+});
 
+// WELCOME SYSTEM 
+
+client.on('guildMemberAdd', member => {
+  if (!welcomeChannelId) return;
+
+  const channel = member.guild.channels.cache.get(welcomeChannelId);
+  if (!channel) return;
+
+  const embed = new EmbedBuilder()
+    .setColor('#2b6cff')
+    .setTitle('👋 Welcome to EuropeMC!')
+    .setDescription(`
+**Version:** 1.21+ • Premium Java & Bedrock  
+**IP:** EuropeMC.eu  
+**Port:** 19132
+    `)
+    .setFooter({ text: 'EuropeMC Network' })
+    .setTimestamp();
+
+  channel.send({
+    content: `🎉 Welcome ${member}!`,
+    embeds: [embed]
+  });
 });
 
 client.login(token);

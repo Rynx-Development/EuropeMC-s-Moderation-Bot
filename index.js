@@ -2,16 +2,12 @@ const {
   Client,
   GatewayIntentBits,
   Partials,
-  SlashCommandBuilder,
-  REST,
-  Routes,
   EmbedBuilder,
-  PermissionsBitField
+  SlashCommandBuilder,
+  PermissionsBitField,
+  REST,
+  Routes
 } = require('discord.js');
-
-const TOKEN = process.env.TOKEN;
-const CLIENT_ID = process.env.CLIENT_ID;
-const GUILD_ID = process.env.GUILD_ID;
 
 const client = new Client({
   intents: [
@@ -23,109 +19,168 @@ const client = new Client({
   partials: [Partials.Channel]
 });
 
+const token = process.env.TOKEN;
+const clientId = process.env.CLIENT_ID;
+const guildId = process.env.GUILD_ID;
+
+
 let welcomeChannelId = null;
-
-client.once('ready', () => {
-  console.log(`✅ Logged in as ${client.user.tag}`);
-});
-
 
 // SLASH COMMANDS 
 
 const commands = [
 
+  new SlashCommandBuilder().setName('ping').setDescription('Ping Pong'),
+
+  new SlashCommandBuilder().setName('help').setDescription('List all commands'),
+
   new SlashCommandBuilder().setName('rules').setDescription('Show server rules'),
 
-  new SlashCommandBuilder().setName('server').setDescription('Show server info'),
-
-  new SlashCommandBuilder().setName('ping').setDescription('Check bot latency'),
+  new SlashCommandBuilder().setName('server').setDescription('Minecraft server info'),
 
   new SlashCommandBuilder()
-    .setName('ban')
-    .setDescription('Ban a user')
-    .addUserOption(o => o.setName('user').setDescription('User').setRequired(true))
-    .addStringOption(o => o.setName('reason').setDescription('Reason')),
+    .setName('userinfo')
+    .setDescription('Show user info')
+    .addUserOption(o =>
+      o.setName('user').setDescription('User').setRequired(false)
+    ),
 
-  new SlashCommandBuilder()
-    .setName('unban')
-    .setDescription('Unban a user')
-    .addStringOption(o => o.setName('userid').setDescription('User ID').setRequired(true)),
-
-  new SlashCommandBuilder()
-    .setName('kick')
-    .setDescription('Kick a user')
-    .addUserOption(o => o.setName('user').setDescription('User').setRequired(true))
-    .addStringOption(o => o.setName('reason').setDescription('Reason')),
-
-  new SlashCommandBuilder()
-    .setName('mute')
-    .setDescription('Timeout a user')
-    .addUserOption(o => o.setName('user').setDescription('User').setRequired(true))
-    .addIntegerOption(o => o.setName('minutes').setDescription('Minutes').setRequired(true)),
-
-  new SlashCommandBuilder()
-    .setName('unmute')
-    .setDescription('Remove timeout')
-    .addUserOption(o => o.setName('user').setDescription('User').setRequired(true)),
+  new SlashCommandBuilder().setName('serverinfo').setDescription('Server details'),
 
   new SlashCommandBuilder()
     .setName('setupwelcome')
     .setDescription('Set welcome channel')
-    .addChannelOption(o => o.setName('channel').setDescription('Channel').setRequired(true))
+    .addChannelOption(o =>
+      o.setName('channel').setDescription('Channel').setRequired(true)
+    ),
 
   new SlashCommandBuilder()
-  .setName('blacklist')
-  .setDescription('Blacklist a user')
-  .addUserOption(o =>
-    o.setName('user')
-      .setDescription('User to blacklist')
-      .setRequired(true))
-  .addStringOption(o =>
-    o.setName('type')
-      .setDescription('Blacklist type')
-      .setRequired(true)
-      .addChoices(
-        { name: 'Media', value: 'media' },
-        { name: 'Staff', value: 'staff' }
-      )),
+    .setName('kick')
+    .setDescription('Kick a user')
+    .addUserOption(o =>
+      o.setName('user').setDescription('User').setRequired(true)
+    ),
 
+  new SlashCommandBuilder()
+    .setName('ban')
+    .setDescription('Ban a user')
+    .addUserOption(o =>
+      o.setName('user').setDescription('User').setRequired(true)
+    ),
+
+  new SlashCommandBuilder()
+    .setName('unban')
+    .setDescription('Unban a user')
+    .addStringOption(o =>
+      o.setName('userid').setDescription('User ID').setRequired(true)
+    ),
+
+  new SlashCommandBuilder()
+    .setName('timeout')
+    .setDescription('Timeout user')
+    .addUserOption(o =>
+      o.setName('user').setDescription('User').setRequired(true)
+    )
+    .addIntegerOption(o =>
+      o.setName('minutes').setDescription('Minutes').setRequired(true)
+    ),
+
+  new SlashCommandBuilder()
+    .setName('clear')
+    .setDescription('Clear messages')
+    .addIntegerOption(o =>
+      o.setName('amount').setDescription('Amount').setRequired(true)
+    ),
+
+  new SlashCommandBuilder().setName('lock').setDescription('Lock channel'),
+  new SlashCommandBuilder().setName('unlock').setDescription('Unlock channel'),
+
+  new SlashCommandBuilder()
+    .setName('announce')
+    .setDescription('Send announcement')
+    .addStringOption(o =>
+      o.setName('message').setDescription('Message').setRequired(true)
+    ),
+
+  new SlashCommandBuilder()
+    .setName('blacklist')
+    .setDescription('Blacklist user')
+    .addUserOption(o =>
+      o.setName('user').setDescription('User').setRequired(true)
+    )
 
 ].map(cmd => cmd.toJSON());
 
+//  REGISTER 
 
-//  REGISTER COMMANDS
-
-const rest = new REST({ version: '10' }).setToken(TOKEN);
+const rest = new REST({ version: '10' }).setToken(token);
 
 (async () => {
-  try {
-    await rest.put(
-      Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
-      { body: commands }
-    );
-    console.log("✅ Slash commands registered.");
-  } catch (err) {
-    console.error(err);
-  }
+  await rest.put(
+    Routes.applicationGuildCommands(clientId, guildId),
+    { body: commands }
+  );
+  console.log("Slash commands registered.");
 })();
 
+// READY 
+client.once('ready', () => {
+  console.log(`${client.user.tag} is online.`);
+});
 
-//  INTERACTIONS 
+// WELCOME 
+
+client.on('guildMemberAdd', async member => {
+  if (!welcomeChannelId) return;
+
+  const channel = member.guild.channels.cache.get(welcomeChannelId);
+  if (!channel) return;
+
+  const embed = new EmbedBuilder()
+    .setColor('#2b6cff')
+    .setTitle('👋 Welcome!')
+    .setDescription(`Welcome ${member} to the server!`)
+    .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
+    .setFooter({ text: `Member #${member.guild.memberCount}` })
+    .setTimestamp();
+
+  channel.send({ embeds: [embed] });
+});
+
+// PREFIX
+
+client.on('messageCreate', message => {
+  if (message.author.bot) return;
+
+  if (message.content === '!ip')
+    message.reply('🌍 Server IP: **EuropeMC.eu**');
+
+  if (message.content === '!rynx')
+    message.reply('Yeah you are correct rynx made this bot');
+});
+
+// SLASH HANDLER 
 
 client.on('interactionCreate', async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
+  const { commandName } = interaction;
+
   try {
 
-    const { commandName } = interaction;
+    if (commandName === 'ping')
+      return interaction.reply('🏓 Pong!');
 
-    // RULES
+    if (commandName === 'help')
+      return interaction.reply('/ping /rules /server /userinfo /kick /ban /timeout /clear /lock /unlock /announce /blacklist');
+
     if (commandName === 'rules') {
       const embed = new EmbedBuilder()
-        .setTitle('📜 Server Rules')
-        .setColor('Blue')
+        .setColor('#2b6cff')
+        .setTitle('📜 EuropeMC Network Rules')
         .setDescription(`
 **EuropeMC Network Rules**
+
 Chat Conduct
 
 Use respectful language at all times. Abusive messages, inappropriate jokes, harassment, or spreading false information are not allowed.
@@ -138,7 +193,7 @@ Any form of hacks, macros, X-ray packs, autoclickers, minimaps, inventory checke
 Evading punishments through alternate accounts, usernames, or similar methods is forbidden.
 EasyMC accounts are STRICTLY prohibited. Associating your account with one can result in a permanent ban.
 
- Inappropriate Content
+Inappropriate Content
 
 Discussions around sexual, hateful, or highly political topics are not welcome here.
 Building inappropriate structures, or using offensive team names, usernames, skins, capes, items, pets, or signs is not allowed.
@@ -176,186 +231,112 @@ Refunds Policy
 
 Due to the intangible nature of our goods, items listed on our store are exempt from the Consumer Rights Act 2015.
 By purchasing an item on our store, you explicitly agree that our goods fall under the “computer software” and “personalised or custom made items” categories which exempt you from a Right of Return. You also agree to indemnify EuropeMC for legal costs that arise from pursuing a refund externally.
-        `);
+        `)
+        .setTimestamp();
 
       return interaction.reply({ embeds: [embed] });
     }
 
-    // SERVER
-    if (commandName === 'server') {
-      const embed = new EmbedBuilder()
-        .setTitle('🌍 EuropeMC')
-        .setColor('Blue')
-        .setDescription(`
-Version: **1.21+** • Premium Java & Bedrock!
-IP: **EuropeMC.eu**
-Port: **19132**
-        `);
+    if (commandName === 'server')
+      return interaction.reply('🌍 EuropeMC.eu ')
+     '(  Version 1.21+ ')
+     '( Java & Bedrock ')
+    '( Port: 19132 ')
 
-      return interaction.reply({ embeds: [embed] });
+    if (commandName === 'userinfo') {
+      const user = interaction.options.getUser('user') || interaction.user;
+      return interaction.reply(`User: ${user.tag}\nID: ${user.id}`);
     }
 
-    // PING
-    if (commandName === 'ping') {
-      return interaction.reply(`🏓 Pong! ${client.ws.ping}ms`);
-    }
+    if (commandName === 'serverinfo')
+      return interaction.reply(`Server: ${interaction.guild.name}\nMembers: ${interaction.guild.memberCount}`);
 
-    // BAN
-    if (commandName === 'ban') {
-      if (!interaction.member.permissions.has(PermissionsBitField.Flags.BanMembers))
-        return interaction.reply({ content: '❌ No permission.', ephemeral: true });
-
-      const user = interaction.options.getUser('user');
-      const reason = interaction.options.getString('reason') || 'No reason';
-
-      await interaction.guild.members.ban(user.id, { reason });
-
-      return interaction.reply(`🔨 ${user.tag} has been banned.`);
-    }
-
-    // UNBAN
-    if (commandName === 'unban') {
-      if (!interaction.member.permissions.has(PermissionsBitField.Flags.BanMembers))
-        return interaction.reply({ content: '❌ No permission.', ephemeral: true });
-
-      const id = interaction.options.getString('userid');
-
-      await interaction.guild.members.unban(id);
-
-      return interaction.reply(`✅ User has been unbanned!`);
-    }
-
-    // KICK
-    if (commandName === 'kick') {
-      if (!interaction.member.permissions.has(PermissionsBitField.Flags.KickMembers))
-        return interaction.reply({ content: '❌ No permission.', ephemeral: true });
-
-      const user = interaction.options.getUser('user');
-      const reason = interaction.options.getString('reason') || 'No reason';
-
-      const member = await interaction.guild.members.fetch(user.id);
-
-      if (!member.kickable)
-        return interaction.reply({ content: '❌ Cannot kick this user.', ephemeral: true });
-
-      await member.kick(reason);
-
-      return interaction.reply(`✈️ ${user.tag} has been kicked.`);
-    }
-
-    // MUTE
-    if (commandName === 'mute') {
-      if (!interaction.member.permissions.has(PermissionsBitField.Flags.ModerateMembers))
-        return interaction.reply({ content: '❌ No permission.', ephemeral: true });
-
-      const user = interaction.options.getUser('user');
-      const minutes = interaction.options.getInteger('minutes');
-
-      const member = await interaction.guild.members.fetch(user.id);
-      await member.timeout(minutes * 60000);
-
-      return interaction.reply(`🔇 ${user.tag} has been muted for ${minutes} minutes.`);
-    }
-
-    // UNMUTE
-    if (commandName === 'unmute') {
-      if (!interaction.member.permissions.has(PermissionsBitField.Flags.ModerateMembers))
-        return interaction.reply({ content: '❌ No permission.', ephemeral: true });
-
-      const user = interaction.options.getUser('user');
-      const member = await interaction.guild.members.fetch(user.id);
-
-      await member.timeout(null);
-
-      return interaction.reply(`🔊 ${user.tag} has been unmuted.`);
-    }
-
-    // SETUP WELCOME
     if (commandName === 'setupwelcome') {
       if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator))
-        return interaction.reply({ content: '❌ Admin only.', ephemeral: true });
+        return interaction.reply({ content: 'No permission.', ephemeral: true });
 
       const channel = interaction.options.getChannel('channel');
       welcomeChannelId = channel.id;
+      return interaction.reply(`Welcome channel set to ${channel}`);
+    }
 
-      return interaction.reply(`✅ Welcome channel set to ${channel}.`);
+    if (commandName === 'kick') {
+      if (!interaction.member.permissions.has(PermissionsBitField.Flags.KickMembers))
+        return interaction.reply({ content: 'No permission.', ephemeral: true });
+
+      const user = interaction.options.getUser('user');
+      const member = await interaction.guild.members.fetch(user.id);
+      await member.kick();
+      return interaction.reply(`${user.tag} has been kicked.`);
+    }
+
+    if (commandName === 'ban') {
+      if (!interaction.member.permissions.has(PermissionsBitField.Flags.BanMembers))
+        return interaction.reply({ content: 'No permission.', ephemeral: true });
+
+      const user = interaction.options.getUser('user');
+      await interaction.guild.members.ban(user.id);
+      return interaction.reply(`${user.tag} has been banned.`);
+    }
+
+    if (commandName === 'unban') {
+      const id = interaction.options.getString('userid');
+      await interaction.guild.members.unban(id);
+      return interaction.reply(`User ${id} has been unbanned.`);
+    }
+
+    if (commandName === 'timeout') {
+      const user = interaction.options.getUser('user');
+      const minutes = interaction.options.getInteger('minutes');
+      const member = await interaction.guild.members.fetch(user.id);
+      await member.timeout(minutes * 60000);
+      return interaction.reply(`${user.tag} has been timed out for ${minutes} minutes.`);
+    }
+
+    if (commandName === 'clear') {
+      const amount = interaction.options.getInteger('amount');
+      await interaction.channel.bulkDelete(amount, true);
+      return interaction.reply({ content: `Deleted ${amount} messages.`, ephemeral: true });
+    }
+
+    if (commandName === 'lock') {
+      await interaction.channel.permissionOverwrites.edit(interaction.guild.roles.everyone, {
+        SendMessages: false
+      });
+      return interaction.reply('🔒 Channel locked.');
+    }
+
+    if (commandName === 'unlock') {
+      await interaction.channel.permissionOverwrites.edit(interaction.guild.roles.everyone, {
+        SendMessages: true
+      });
+      return interaction.reply('🔓 Channel unlocked.');
+    }
+
+    if (commandName === 'announce') {
+      const msg = interaction.options.getString('message');
+      const embed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setTitle('📢 Announcement')
+        .setDescription(msg)
+        .setTimestamp();
+
+      return interaction.reply({ embeds: [embed] });
+    }
+
+    if (commandName === 'blacklist') {
+      const user = interaction.options.getUser('user');
+      const member = await interaction.guild.members.fetch(user.id);
+      const role = interaction.guild.roles.cache.find(r => r.name === "Blacklisted");
+      if (role) await member.roles.add(role);
+      return interaction.reply(`${user.tag} blacklisted.`);
     }
 
   } catch (err) {
     console.error(err);
-    if (!interaction.replied)
-      interaction.reply({ content: '⚠️ Error occurred.', ephemeral: true });
+    interaction.reply({ content: 'Error occurred.', ephemeral: true });
   }
-});
-
-// BLACKLIST
-
-if (commandName === 'blacklist') {
-
-  if (!interaction.member.permissions.has(PermissionsBitField.Flags.ModerateMembers))
-    return interaction.reply({ content: '❌ No permission.', ephemeral: true });
-
-  const user = interaction.options.getUser('user');
-  const type = interaction.options.getString('type');
-
-  return interaction.reply(`🚫 ${user.tag} has been blacklisted from ${type}.`);
-}
-
-// SERVER
-
-client.on('messageCreate', message => {
-  if (message.author.bot) return;
-
-  // !ip
-  if (message.content.toLowerCase() === '!ip') {
-    const embed = new EmbedBuilder()
-      .setTitle('🌍 EuropeMC')
-      .setColor('Blue')
-      .setDescription(`
-Version: **1.21+** • Premium Java & Bedrock!
-IP: **EuropeMC.eu**
-Port: **19132**
-      `);
-
-    message.channel.send({ embeds: [embed] });
-  }
-
-  // !rynx
-  if (message.content.toLowerCase() === '!rynx') {
-    message.channel.send("Yeah you are correct rynx made this bot 😎");
-  }
-});
-
-
-//  WELCOME EVENT 
-
-client.on('guildMemberAdd', async member => {
-
-  if (!welcomeChannelId) return;
-
-  const channel = member.guild.channels.cache.get(welcomeChannelId);
-  if (!channel) return;
-
-  const embed = new EmbedBuilder()
-    .setColor('#2b6cff')
-    .setTitle('👋 Welcome to EuropeMC!')
-    .setDescription(`
-Welcome ${member} to **EuropeMC**!
-
-🌍 **IP:** EuropeMC.eu  
-🔌 **Port:** 19132  
-🧱 **Version:** 1.21+ (Java & Bedrock)
-
-Make sure to read the rules and enjoy your stay!
-    `)
-    .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
-    .setImage('https://image2url.com/r2/default/images/1771341614059-80848087-7c35-48db-873a-1326163685e0.png') 
-    .setFooter({ text: `Member #${member.guild.memberCount}` })
-    .setTimestamp();
-
-  await channel.send({ embeds: [embed] });
 
 });
 
-
-client.login(TOKEN);
+client.login(token);
